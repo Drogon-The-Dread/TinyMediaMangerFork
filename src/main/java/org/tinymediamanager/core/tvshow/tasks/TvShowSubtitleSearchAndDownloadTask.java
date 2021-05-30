@@ -17,7 +17,9 @@ package org.tinymediamanager.core.tvshow.tasks;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -37,6 +39,7 @@ import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
+import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.MediaScraper;
 import org.tinymediamanager.scraper.SubtitleSearchAndScrapeOptions;
 import org.tinymediamanager.scraper.SubtitleSearchResult;
@@ -126,19 +129,25 @@ public class TvShowSubtitleSearchAndDownloadTask extends TmmThreadPool {
 
             ITvShowSubtitleProvider subtitleProvider = (ITvShowSubtitleProvider) scraper.getMediaProvider();
             SubtitleSearchAndScrapeOptions options = new SubtitleSearchAndScrapeOptions(MediaType.TV_EPISODE);
-            options.setFile(mf.getFileAsPath().toFile());
+            options.setMediaFile(mf);
             options.setLanguage(language);
             options.setSeason(episode.getSeason());
             options.setEpisode(episode.getEpisode());
 
-            String imdbId = episode.getTvShow().getImdbId();
-            if (StringUtils.isBlank(imdbId)) {
+            options.setIds(episode.getIds());
+
+            // get the IMDB id for the TV show if necessary
+            Map<String, Object> tvShowIds = new HashMap<>(episode.getTvShow().getIds());
+            String tvShowImdbId = MetadataUtil.getIdAsString(tvShowIds, MediaMetadata.IMDB);
+            if (!MetadataUtil.isValidImdbId(tvShowImdbId) && MetadataUtil.getIdAsInt(tvShowIds, MediaMetadata.TVDB) > 0) {
               // try to get the IMDB Id via TheTVDB
-              MediaIdUtil.getImdbIdFromTvdbId(episode.getTvShow().getTvdbId());
+              tvShowImdbId = MediaIdUtil.getImdbIdFromTvdbId(String.valueOf(MetadataUtil.getIdAsInt(tvShowIds, MediaMetadata.TVDB)));
             }
-            if (StringUtils.isNotBlank(imdbId)) {
-              options.setImdbId(imdbId);
+
+            if (MetadataUtil.isValidImdbId(tvShowImdbId)) {
+              tvShowIds.put(MediaMetadata.IMDB, tvShowImdbId);
             }
+            options.setId("tvShowIds", tvShowIds);
 
             List<SubtitleSearchResult> searchResults = subtitleProvider.search(options);
             if (searchResults.isEmpty()) {
@@ -185,7 +194,7 @@ public class TvShowSubtitleSearchAndDownloadTask extends TmmThreadPool {
       }
 
       SubtitleSearchResult hashMatch = searchResults.stream()
-          .filter(result -> result.getScore() == 1 && StringUtils.isNotBlank(result.getUrl()))
+          .filter(result -> result.getScore() == 1)
           .findFirst()
           .orElse(null);
       // if not forceBestMatch, we take only 100% (hash matched) results

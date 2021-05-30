@@ -55,7 +55,7 @@ public class ITMovieSubtitleSearchTest extends BasicTest {
       for (Movie movie : MovieList.getInstance().getMovies()) {
         for (MediaFile mediaFile : movie.getMediaFiles(MediaFileType.VIDEO)) {
           SubtitleSearchAndScrapeOptions options = new SubtitleSearchAndScrapeOptions(MediaType.MOVIE);
-          options.setFile(mediaFile.getFile().toFile());
+          options.setMediaFile(mediaFile);
           List<SubtitleSearchResult> results = ((IMovieSubtitleProvider) scraper.getMediaProvider()).search(options);
           if (!results.isEmpty()) {
             System.out.println("Subtitle for hash found: " + results.get(0).getUrl());

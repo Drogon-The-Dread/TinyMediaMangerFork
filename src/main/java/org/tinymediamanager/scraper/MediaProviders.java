@@ -46,6 +46,8 @@ import org.tinymediamanager.scraper.omdb.OmdbMovieMetadataProvider;
 import org.tinymediamanager.scraper.omdb.OmdbTvShowMetadataProvider;
 import org.tinymediamanager.scraper.opensubtitles.OpenSubtitlesMovieSubtitleProvider;
 import org.tinymediamanager.scraper.opensubtitles.OpenSubtitlesTvShowSubtitleProvider;
+import org.tinymediamanager.scraper.opensubtitles2.OpenSubtitles2MovieSubtitleProvider;
+import org.tinymediamanager.scraper.opensubtitles2.OpenSubtitles2TvShowSubtitleProvider;
 import org.tinymediamanager.scraper.thetvdb.TheTvDbTvShowArtworkProvider;
 import org.tinymediamanager.scraper.thetvdb.TheTvDbTvShowMetadataProvider;
 import org.tinymediamanager.scraper.tmdb.TmdbMovieArtworkProvider;
@@ -127,6 +129,7 @@ public class MediaProviders {
     // MOVIE SUBTITLES
     /////////////////////////////////////////////
     loadProvider(OpenSubtitlesMovieSubtitleProvider.class);
+    loadProvider(OpenSubtitles2MovieSubtitleProvider.class);
 
     /////////////////////////////////////////////
     // TV SHOWS
@@ -168,6 +171,7 @@ public class MediaProviders {
     // TV SHOW SUBTITLES
     /////////////////////////////////////////////
     loadProvider(OpenSubtitlesTvShowSubtitleProvider.class); // already loaded in movie section, because this scraper share its instances
+    loadProvider(OpenSubtitles2TvShowSubtitleProvider.class);
   }
 
   private static void loadProvider(Class<? extends IMediaProvider> clazz) {
